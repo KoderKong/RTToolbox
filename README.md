@@ -1,5 +1,7 @@
 # Ricci-Notation Tensor Toolbox (RTToolbox)
 
+[!\[Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=KoderKong/RTToolbox)
+
 **Release 2026 (R2026):** This release adds sparse tensor functionality to the RT framework. Furthermore, it develops algebra and software for a new approach to numerical algebraic geometry \[1], namely the any-degree unitary-triangular (Qr) factorization.
 
 **Release 2024 (R2024):** The Ricci-notation tensor (RT) framework \[2] comprises a dual-variant index algebra, aligned with the Ricci notation of non-Euclidean geometry but designed for numeric purposes, as well as codesigned object-oriented software, called the RTToolbox for MATLAB. Compared to a numeric tensor (NT) predecessor \[3, 4, 5, 6], the RT framework enables superior ways to model imaging problems and to thereby develop solutions.
@@ -15,3 +17,4 @@
 \[5] Richard Cairney, "PhD thesis cites Einstein and Kuhn, identifies computing paradigm," News \& Events, Faculty of Engineering, University of Alberta, Jun. 2016 ([URL](https://www.ualberta.ca/engineering/news/2016/june/phdthesisciteseinsteinandkuhnidentifiesmathematicalparadigm.html))
 
 \[6] Adam P. Harrison (supervised by Dileepan Joseph ), *Numeric Tensor Framework: Toward a New Paradigm in Technical Computing*, Ph.D. Thesis, University of Alberta, pp. i-xvi 1-199, Jun. 2016 ([DOI](https://doi.org/10.7939/R3Q81536T))
+
