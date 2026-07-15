@@ -1,6 +1,6 @@
 # Ricci-Notation Tensor Toolbox (RTToolbox)
 
-**Release 2026 (R2026):** This release adds sparse tensor functionality to the RT framework. Furthermore, it develops algebra and software for a new approach to numerical algebraic geometry \[1], namely the any-degree unitary-triangular (Qr) factorization. ([Open in MATLAB Online](https://matlab.mathworks.com/open/github/v1?repo=KoderKong/RTToolbox).)
+**Release 2026 (R2026):** This release adds sparse tensor functionality to the RT framework. Furthermore, it develops algebra and software for a new approach to numerical algebraic geometry \[1], namely the any-degree unitary-triangular (Qr) factorization. ([Open in MATLAB Online](https://matlab.mathworks.com/open/fileexchange/v1?id=184113).)
 
 **Release 2024 (R2024):** The Ricci-notation tensor (RT) framework \[2] comprises a dual-variant index algebra, aligned with the Ricci notation of non-Euclidean geometry but designed for numeric purposes, as well as codesigned object-oriented software, called the RTToolbox for MATLAB. Compared to a numeric tensor (NT) predecessor \[3, 4, 5, 6], the RT framework enables superior ways to model imaging problems and to thereby develop solutions.
 
