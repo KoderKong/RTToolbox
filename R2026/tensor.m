@@ -548,25 +548,24 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
             if sum(isf) > 1
                 error('Supply no more than one function handle.')
             end
-            [a,sa] = cmpa(a);
-            [Astar,szQ,sQu] = makecoeff(a*sa',DeltaD);
-            [vs_,sr] = cmpvs(sQu,sa);
-            Z = makebasis(Astar,szQ,sQu,varargin{isf});
+            [a,xa] = cmpa(a);
+            [Astar,szQ,xQu,xr] = makecoeff(a*xa',DeltaD);
+            Z = makebasis(Astar,szQ,xQu,varargin{isf});
             y = makeinity(Z,szQ);
-            [Qu,Qv,Id,vs,sQv,sId] = optimize(Z,y,sQu,varargin{~isf});
-            r = Qu'*a*vs_;
+            [Qu,Qv,Id,vs,xQv,xId] = optimize(Z,y,xQu,varargin{~isf});
+            r = Qu'*a*cmpvs(xQu,xa,xr);
             switch nargout
                 case {0,1}
-                    varargout = {r*sr'};
+                    varargout = {r*xr'};
                 case 2
-                    varargout = {Qu*sQu,r*sr'};
+                    varargout = {Qu*xQu,r*xr'};
                 case 3
-                    varargout = {Qv*sQv',Qu*sQu,r*sr'};
+                    varargout = {Qv*xQv',Qu*xQu,r*xr'};
                 case 4
-                    varargout = {Qv*sQv',Qu*sQu,r*sr',Id*sId'};
+                    varargout = {Qv*xQv',Qu*xQu,r*xr',Id*xId'};
                 case 5
-                    varargout = {Qv*sQv',Qu*sQu,r*sr',Id*sId', ...
-                        vs*sQv*sQu*sId'};
+                    varargout = {Qv*xQv',Qu*xQu,r*xr',Id*xId', ...
+                        vs*xQv*xQu*xId'};
             end
         end
         function [Qu,Qv,R] = qq(Qu,Qv)
@@ -659,39 +658,27 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
         end
     end
     methods (Access = protected) % R2026
-        function [Astar,szQ,sQu,sr] = makecoeff(a,DeltaD)
+        function [Astar,szQ,xQu,xr] = makecoeff(a,DeltaD)
             [M,one,N,~] = size(a);
             assert(one == 1)
             h = index(DeltaD);
             i = index(a);
             hi = [h i];
             k = index(numel(hi));
-            [n,o] = index(2);
-            NNN = repmat(N,1,numel(hi));
-            if nargout < 4
-                h1 = index;
-            else
-                [h1,k1] = index(2);
-                sr = tensor.es(NNN,~k,k1);
-            end
+            [n,o,h1,k1] = index(4);
             NN = repmat(N,1,numel(h));
-            sQu = tensor.es(NN,~h,h1);
+            xQu = tensor.ex(NN,~h,h1);
+            NNN = repmat(N,1,numel(hi));
+            xr = tensor.ex(NNN,~k,k1);
             type = class(entry(a));
-            if nargout < 4
-                A = kdelta(M,~n,o,type)*(a*(sQu'*vsigma(NNN,~hi,k,type))) ...
-                    -a*(sQu'*vsigma([M NNN],~[n hi],[o k],type));
-                assert(isequal(index(A),[~n o ~h1 k]))
-                A = permute(A,[~n ~h1 o k]);
-            else
-                A = kdelta(M,~n,o,type)*(a*(sQu'*(vsigma(NNN,~hi,k,type)*sr))) ...
-                    -a*(sQu'*(vsigma([M NNN],~[n hi],[o k],type)*sr));
-                assert(isequal(index(A),[~n o ~h1 k1]))
-                A = permute(A,[~n ~h1 o k1]);
-            end
+            A = kdelta(M,~n,o,type)*(a*(xQu'*(vsigma(NNN,~hi,k,type)*xr))) ...
+                -a*(xQu'*(vsigma([M NNN],~[n hi],[o k],type)*xr));
+            assert(isequal(index(A),[~n o ~h1 k1]))
+            A = permute(A,[~n ~h1 o k1]);
             szQ = size(A,[1 3:4]);
             Astar = reshape(entry(A),prod(szQ),[])';
         end
-        function Z = makebasis(Astar,szQ,sQu,fun)
+        function Z = makebasis(Astar,szQ,xQu,fun)
             if nargin < 4
                 [Z,q] = null(Astar);
                 Z(q,:) = Z;
@@ -700,7 +687,7 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
             end
             L = size(Z,2); % rank
             Z = reshape(sparse1(Z),[szQ L]);
-            kk = index(sQu);
+            kk = index(xQu);
             k = kk(end);
             u = index;
             Z = tensor(Z,~k,~u);
@@ -713,11 +700,11 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
             ell = (N-M*M+1:N)';
             y = sparse(Z(ell,:)\Qend);
         end
-        function [Qu,Qv,Id,vs,sQv,sId] = optimize(Z,y,sQu,varargin)
+        function [Qu,Qv,Id,vs,xQv,xId] = optimize(Z,y,xQu,varargin)
             [~,j] = deal(~index(Z));
             numy = numel(y);
             Qu = Z*tensor(reshape(sparse1(y),1,1,numy),j);
-            [Qv,Id,vs,sQv,sId] = unitaryinv(Qu,sQu);
+            [Qv,Id,vs,xQv,xId] = unitaryinv(Qu,xQu);
             options = optimoptions('fminunc', ...
                 'Algorithm','quasi-newton', ...
                 'SpecifyObjectiveGradient',true);
@@ -734,36 +721,41 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
                 Qu = Z*tensor(reshape(sparse1(y),1,1,numy),j);
             end
         end
-        function [a,sa] = cmpa(a)
+        function [a,xa] = cmpa(a)
             a = simplify(a,'argdeg');
             dims = size(a,3:degree(a)+2);
-            sa = tensor.es(dims,~index(a),index);
-            a = a*sa;
+            xa = tensor.ex(dims,~index(a),index);
+            a = a*xa;
         end
-        function [vs,sr] = cmpvs(sQu,sa,varargin)
-            szi = size(sQu,3:ndims(sQu)-1);
-            i = ~index(sQu);
+        function [vs,xr] = cmpvs(xQu,xa,xr)
+            szi = size(xQu,3:ndims(xQu)-1);
+            i = ~index(xQu);
             i(end) = [];
-            szj = size(sa,3:ndims(sa)-1);
-            j = ~index(sa);
+            szj = size(xa,3:ndims(xa)-1);
+            j = ~index(xa);
             j(end) = [];
             szk = [szi szj];
-            k = index(degree(sQu)+degree(sa)-2);
-            vs = vsigma(szk,~[i j],k,varargin{:});
-            sr = tensor.es(szk,~k,index);
-            vs = sQu'*(sa'*(vs*sr));
+            if nargin < 3
+                k = index(degree(xQu)+degree(xa)-2);
+                xr = tensor.ex(szk,~k,index);
+            else
+                k = ~index(xr);
+                k(end) = [];
+            end
+            vs = vsigma(szk,~[i j],k);
+            vs = xQu'*(xa'*(vs*xr));
         end
-        function [Qv,Id,vs,sQv,sId] = unitaryinv(Qu,sQu)
+        function [Qv,Id,vs,xQv,xId] = unitaryinv(Qu,xQu)
             M = size(Qu,1);
-            N = size(sQu,3);
-            DeltaD = degree(sQu)-1;
+            N = size(xQu,3);
+            DeltaD = degree(xQu)-1;
             szh = repmat(N,1,DeltaD);
             h = index(DeltaD);
-            sQv = tensor.es(szh,~h,index);
-            [vs,sId] = cmpvs(sQv,sQu);
+            xQv = tensor.ex(szh,~h,index);
+            [vs,xId] = cmpvs(xQv,xQu);
             assert(isequal(degree(vs),3))
             [~,~,k] = index(vs);
-            szk = size(sId,k);
+            szk = size(xId,k);
             eId = sparse1([],[],[M M szk],0);
             eId(:,:,end) = speye(M,M);
             Id = tensor(eId,k);
@@ -792,7 +784,7 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
             end
             li = sub2ind(dims,subs{:});
         end
-        function [s,i,j] = es(dims,i,j)
+        function [x,i,j] = ex(dims,i,j)
             assert(isrow(dims) && all(diff(dims) >= 0))
             degree = numel(dims);
             assert(numel(i) == degree && isscalar(j))
@@ -805,13 +797,13 @@ classdef (InferiorClasses = {?index,?sparse1}) tensor
                 lj = sub2ind(dims,subs{:});
                 k = find(li == lj);
                 dim1 = numel(k);
-                s = sparse1(sparse(li(k),1:dim1,1,N,dim1));
-                s = reshape(s,[1 1 dims dim1]);
+                x = sparse1(sparse(li(k),1:dim1,1,N,dim1));
+                x = reshape(x,[1 1 dims dim1]);
             else
-                s = sparse1(sparse(li,li,1,N,N));
-                s = reshape(s,[1 1 dims dims]);
+                x = sparse1(sparse(li,li,1,N,N));
+                x = reshape(x,[1 1 dims dims]);
             end
-            s = tensor(s,i,j);
+            x = tensor(x,i,j);
         end
     end
 end
