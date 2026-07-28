@@ -13,10 +13,8 @@ assert(degree(r) == degree(a)+2)
 disp(r)
 %%
 [Qu,r] = qr(a,2,'Display','iter');
-iseq = @(a,b,n) isequal( ...
-    round(a,n),round(b,n));
 [vs,~,k] = vsigma(Qu',a);
-assert(iseq(r(k),Qu'*a*vs,15))
+assert(isequal(r(k),Qu'*a*vs))
 %%
 [Qv,Qu,r] = qr(a,2,'Display','off');
 Qr = simplify(Qv*r); % 'mindeg'
@@ -25,8 +23,8 @@ assert(isequal(a,Qr(index(a))))
 assert(isequal(r(k),Qu'*a*vs))
 %%
 r = simplify(r);
-disp(r)
 assert(degree(r) == degree(a))
+disp(r)
 %%
 k = index(r);
 x3 = roots(r(end,1,k));
